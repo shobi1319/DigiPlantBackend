@@ -20,6 +20,7 @@ app.get('/', (req, res) => {
 
 // Use user routes
 app.use('/api/users', userRoutes);
+app.use('/api/nursery', userRoutes);
 
 // Start the server
 app.listen(PORT, () => {
