@@ -62,17 +62,17 @@ const createUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     
     // Create a new user with the hashed password
-    const users = new User({
+    const user = new User({
       ...req.body,
       password: hashedPassword, // Use the hashed password
     });
 
-    await users.save();
+    await user.save();
 
     res.status(201).json({
       message: 'User added successfully!',
       success: true,
-      user: users // Return the created user object without exposing the password
+      user // Return the created user object without exposing the password
     });
   } catch (error) {
     if (error.code === 11000) { // Duplicate key error
@@ -87,6 +87,7 @@ const createUser = async (req, res) => {
     });
   }
 };
+
 
 
 // Login user
