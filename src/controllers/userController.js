@@ -56,15 +56,23 @@ const editUserProfile = async (req, res) => {
     res.status(500).json({ message: 'Failed to update profile', error: error.message });
   }
 };
-// Create a new user
 const createUser = async (req, res) => {
   try {
-    const users = new User(req.body);
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    
+    // Create a new user with the hashed password
+    const users = new User({
+      ...req.body,
+      password: hashedPassword, // Use the hashed password
+    });
+
     await users.save();
+
     res.status(201).json({
       message: 'User added successfully!',
       success: true,
-      user: users // Return the created user object
+      user: users // Return the created user object without exposing the password
     });
   } catch (error) {
     if (error.code === 11000) { // Duplicate key error
@@ -79,6 +87,7 @@ const createUser = async (req, res) => {
     });
   }
 };
+
 
 // Login user
 const loginUser = async (req, res) => {
