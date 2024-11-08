@@ -2,48 +2,38 @@
 const mongoose = require('mongoose');
 
 const NurserySchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  businessRegistrationNumber: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  ownerName: {
-    type: String,
-    required: true,
-  },
   email: {
     type: String,
     required: true,
     unique: true,
+    trim: true,
+    lowercase: true,
   },
   password: {
     type: String,
     required: true,
+    minlength: 6,  // You can adjust this based on your password policy
   },
-  address: {
+  nurseryName: {
     type: String,
     required: true,
+    trim: true,
   },
-  contactNumber: {
+  ownerName: {
     type: String,
     required: true,
+    trim: true,
   },
-  businessType: {
+  nurseryDescription: {
+    type: String,
+    trim: true,
+  },
+  phoneNumber: {
     type: String,
     required: true,
+    trim: true,
   },
-  description: {
-    type: String,
-    default: '',
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  }
+
 });
 
 module.exports = mongoose.model('Nursery', NurserySchema);
