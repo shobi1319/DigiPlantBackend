@@ -146,30 +146,4 @@ const loginNursery = async (req, res) => {
   }
 };
 
-    const isPasswordValid = await bcrypt.compare(password, nursery.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        message: 'Invalid password',
-        success: false,
-      });
-    }
-
-    // Generate a token using the nurseryId
-    const token = jwt.sign({ nurseryId: nursery._id }, JWT_SECRET, { expiresIn: '1h' });
-    console.log(token);
-
-    // Send token to frontend
-    res.status(200).json({
-      message: 'Login successful',
-      success: true,
-      token,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
-      success: false,
-    });
-  }
-};
-
 module.exports = { loginNursery, createNursery, getNurseryProfile, editNurseryProfile };
