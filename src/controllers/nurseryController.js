@@ -81,13 +81,10 @@ const createNursery = async (req, res) => {
 
     // Create a new nursery with the hashed password and other values
     const nursery = new Nursery({
-      nurseryId,  // Ensure the nurseryId is added to the model
-      email,
-      password: hashedPassword, // Store hashed password
-      nurseryName,
-      ownerName,
-      nurseryDescription,
-      phoneNumber,
+    
+      ...req.body,
+         password: hashedPassword, // Store hashed password
+    
     });
 
     // Save the nursery to the database
