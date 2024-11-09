@@ -1,7 +1,12 @@
-// models/Nursery.js
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');  // For generating unique IDs
 
 const NurserySchema = new mongoose.Schema({
+  nurseryId: {
+    type: String,
+    unique: true,
+    default: () => uuidv4(),  // Generates a unique nurseryId using UUID
+  },
   email: {
     type: String,
     required: true,
@@ -33,7 +38,6 @@ const NurserySchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-
 });
 
 module.exports = mongoose.model('Nursery', NurserySchema);
