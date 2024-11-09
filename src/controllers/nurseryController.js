@@ -61,17 +61,17 @@ const editNurseryProfile = async (req, res) => {
   }
 };
 
-// Register nursery
+
+
 const createNursery = async (req, res) => {
   try {
-    // Destructure values from the request body
-    const { nurseryId, email, password, nurseryName, ownerName, nurseryDescription, phoneNumber } = req.body;
+    const { email, password, nurseryName, ownerName, nurseryDescription, phoneNumber } = req.body;
 
-    // Check if the nurseryId or email already exists
-    const existingNursery = await Nursery.findOne({ $or: [{ nurseryId }, { email }] });
+    // Check if the email already exists
+    const existingNursery = await Nursery.findOne({ $or: [{ email }] });
     if (existingNursery) {
       return res.status(400).json({
-        message: 'Nursery ID or email already exists.',
+        message: 'Email already exists.',
         success: false,
       });
     }
@@ -79,12 +79,14 @@ const createNursery = async (req, res) => {
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new nursery with the hashed password and other values
+    // Create a new nursery
     const nursery = new Nursery({
-    
-      ...req.body,
-         password: hashedPassword, // Store hashed password
-    
+      email,
+      password: hashedPassword, // Store hashed password
+      nurseryName,
+      ownerName,
+      nurseryDescription,
+      phoneNumber,
     });
 
     // Save the nursery to the database
@@ -97,20 +99,16 @@ const createNursery = async (req, res) => {
       nursery,
     });
   } catch (error) {
-    // Handle any errors
-    if (error.code === 11000) { // Duplicate key error (MongoDB unique constraint violation)
-      return res.status(400).json({
-        message: 'Nursery ID or email already exists.',
-        success: false,
-      });
-    }
-    // General error handling
+    console.error(error);
     res.status(400).json({
       message: error.message,
       success: false,
     });
   }
 };
+
+module.exports = { createNursery };
+
 
 
 // Login nursery

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');  // For generating unique IDs
 
 const NurserySchema = new mongoose.Schema({
-  nurseryId: { type: String, unique: true }, // Ensure userId is unique
+  nurseryId: { type: String, unique: true, default: () => `nursery_${uuidv4()}` }, // Default to generate unique ID
   email: {
     type: String,
     required: true,
