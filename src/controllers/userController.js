@@ -2,8 +2,12 @@ const { put } = require('@vercel/blob');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 
 const JWT_SECRET = '1319@';
+
+// Configure multer to parse image file uploads
+const upload = multer();
 
 // Fetch user profile
 const getUserProfile = async (req, res) => {
@@ -50,11 +54,11 @@ const editUserProfile = async (req, res) => {
     user.address = address || user.address;
     user.phone = phone || user.phone;
 
-    // Handle image upload
+    // Handle image upload for profile update
     if (req.file) {
-      const imageBuffer = req.file.buffer;  // Assume req.file contains image buffer
+      const imageBuffer = req.file.buffer;
       const { url } = await put(`profile-images/${userId}.png`, imageBuffer, { access: 'public' });
-      user.profileImageUrl = url;  // Save the image URL in the user's profile
+      user.profileImageUrl = url;
     }
 
     await user.save();
@@ -65,13 +69,23 @@ const editUserProfile = async (req, res) => {
   }
 };
 
-// Create user
+// Create user with optional profile image
 const createUser = async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    // Handle image upload for new user
+    let profileImageUrl;
+    if (req.file) {
+      const imageBuffer = req.file.buffer;
+      const { url } = await put(`profile-images/${req.body.email}.png`, imageBuffer, { access: 'public' });
+      profileImageUrl = url;
+    }
+
     const user = new User({
       ...req.body,
       password: hashedPassword,
+      profileImageUrl, // Store the image URL if available
     });
 
     await user.save();
@@ -79,18 +93,18 @@ const createUser = async (req, res) => {
     res.status(201).json({
       message: 'User added successfully!',
       success: true,
-      user
+      user,
     });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
         message: 'User ID or email already exists.',
-        success: false
+        success: false,
       });
     }
     res.status(400).json({
       message: error.message,
-      success: false
+      success: false,
     });
   }
 };
@@ -132,4 +146,10 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, createUser, getUserProfile, editUserProfile };
+// Apply multer middleware to routes that handle file uploads
+module.exports = {
+  loginUser,
+  createUser: [upload.single('profileImage'), createUser],
+  getUserProfile,
+  editUserProfile: [upload.single('profileImage'), editUserProfile],
+};
