@@ -64,35 +64,57 @@ const editNurseryProfile = async (req, res) => {
 // Register nursery
 const createNursery = async (req, res) => {
   try {
-    // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    // Destructure values from the request body
+    const { nurseryId, email, password, nurseryName, ownerName, nurseryDescription, phoneNumber } = req.body;
 
-    // Create a new nursery with the hashed password
+    // Check if the nurseryId or email already exists
+    const existingNursery = await Nursery.findOne({ $or: [{ nurseryId }, { email }] });
+    if (existingNursery) {
+      return res.status(400).json({
+        message: 'Nursery ID or email already exists.',
+        success: false,
+      });
+    }
+
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new nursery with the hashed password and other values
     const nursery = new Nursery({
-      ...req.body,
+      nurseryId,  // Ensure the nurseryId is added to the model
+      email,
       password: hashedPassword, // Store hashed password
+      nurseryName,
+      ownerName,
+      nurseryDescription,
+      phoneNumber,
     });
 
+    // Save the nursery to the database
     await nursery.save();
 
+    // Send a success response
     res.status(201).json({
       message: 'Nursery registered successfully!',
       success: true,
       nursery,
     });
   } catch (error) {
-    if (error.code === 11000) { // Duplicate key error
+    // Handle any errors
+    if (error.code === 11000) { // Duplicate key error (MongoDB unique constraint violation)
       return res.status(400).json({
         message: 'Nursery ID or email already exists.',
         success: false,
       });
     }
+    // General error handling
     res.status(400).json({
       message: error.message,
       success: false,
     });
   }
 };
+
 
 // Login nursery
 const jwt = require('jsonwebtoken');  // Import jsonwebtoken
