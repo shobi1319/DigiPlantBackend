@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
+const nurseryRoutes = require('./routes/nurseryRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,7 +21,7 @@ app.get('/', (req, res) => {
 
 // Use user routes
 app.use('/api/users', userRoutes);
-app.use('/api/nursery', userRoutes);
+app.use('/api/nursery', nurseryRoutes);
 
 // Start the server
 app.listen(PORT, () => {
