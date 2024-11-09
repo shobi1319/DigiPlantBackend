@@ -1,15 +1,15 @@
+const { put } = require('@vercel/blob');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Secret key for JWT (use a secure, private key in production)
 const JWT_SECRET = '1319@';
 
 // Fetch user profile
 const getUserProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // Access the user ID from the decoded token
-    const user = await User.findById(userId).select('-password'); // Exclude password from the response
+    const userId = req.user.id;
+    const user = await User.findById(userId).select('-password');
 
     if (!user) {
       return res.status(404).json({
@@ -18,7 +18,6 @@ const getUserProfile = async (req, res) => {
       });
     }
 
-    // Respond with user data
     res.status(200).json({
       message: 'User profile retrieved successfully',
       success: true,
@@ -32,14 +31,16 @@ const getUserProfile = async (req, res) => {
     });
   }
 };
+
+// Edit user profile with image upload
 const editUserProfile = async (req, res) => {
   const { name, email, address, phone, password } = req.body;
   const userId = req.user.id;
 
   try {
     const user = await User.findById(userId);
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid password' });
     }
@@ -49,6 +50,13 @@ const editUserProfile = async (req, res) => {
     user.address = address || user.address;
     user.phone = phone || user.phone;
 
+    // Handle image upload
+    if (req.file) {
+      const imageBuffer = req.file.buffer;  // Assume req.file contains image buffer
+      const { url } = await put(`profile-images/${userId}.png`, imageBuffer, { access: 'public' });
+      user.profileImageUrl = url;  // Save the image URL in the user's profile
+    }
+
     await user.save();
 
     res.status(200).json({ message: 'Profile updated successfully', user });
@@ -56,15 +64,14 @@ const editUserProfile = async (req, res) => {
     res.status(500).json({ message: 'Failed to update profile', error: error.message });
   }
 };
+
+// Create user
 const createUser = async (req, res) => {
   try {
-    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    
-    // Create a new user with the hashed password
     const user = new User({
       ...req.body,
-      password: hashedPassword, // Use the hashed password
+      password: hashedPassword,
     });
 
     await user.save();
@@ -72,10 +79,10 @@ const createUser = async (req, res) => {
     res.status(201).json({
       message: 'User added successfully!',
       success: true,
-      user // Return the created user object without exposing the password
+      user
     });
   } catch (error) {
-    if (error.code === 11000) { // Duplicate key error
+    if (error.code === 11000) {
       return res.status(400).json({
         message: 'User ID or email already exists.',
         success: false
@@ -87,8 +94,6 @@ const createUser = async (req, res) => {
     });
   }
 };
-
-
 
 // Login user
 const loginUser = async (req, res) => {
@@ -112,10 +117,8 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Generate a token using the userId
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
-console.log(token);
-    // Send token to frontend
+
     res.status(200).json({
       message: 'Login successful',
       success: true,
@@ -129,4 +132,4 @@ console.log(token);
   }
 };
 
-module.exports = { loginUser, createUser,getUserProfile , editUserProfile};
+module.exports = { loginUser, createUser, getUserProfile, editUserProfile };

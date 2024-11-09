@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   userType: { type: String, required: true },
   address: { type: String, required: true },
   phone: { type: String, required: true },
+  profileImage: { type: String }, // URL to the profile image stored on Vercel Blob
 });
 
 // Create the User model based on the schema
